@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:key="pref_main_settings">
+
+    <EditTextPreference
+        android:defaultValue="http://novramedialabs.com"
+        android:inputType="text"
+        android:key="pref_server"/>
+    <EditTextPreference
+        android:defaultValue="/nathan.php"
+        android:inputType="text"
+        android:key="pref_path"/>
+
+
+</PreferenceScreen>

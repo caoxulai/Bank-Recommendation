@@ -74,13 +74,20 @@ public class MainActivity extends ActionBarActivity {
 //        loginButton.setReadPermissions("email");
 //        loginButton.setReadPermissions("user_friends");
 //        loginButton.setReadPermissions("user_actions.fitness");
-        loginButton.setReadPermissions(Arrays.asList("user_status", "user_likes", "email", "user_friends", "user_actions.fitness"));
-
+        loginButton.setReadPermissions(Arrays.asList("user_posts", "user_status", "user_likes", "user_about_me", "user_actions.books", "user_events", "user_groups", "user_birthday"));
 
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
                     @Override
                     public void onSuccess(LoginResult loginResult) {
                         final AccessToken accessToken = loginResult.getAccessToken();
+
+
+                        Intent intent = new Intent(MainActivity.this, MessageIntentService.class);
+
+                        intent.putExtra("accesstoken",accessToken.getToken());
+                        MainActivity.this.startService(intent);
+
+
 
                         System.out.println("AccessToken: " + accessToken.getToken());
                         System.out.println("getApplicationId: " + accessToken.getApplicationId());
@@ -89,9 +96,17 @@ public class MainActivity extends ActionBarActivity {
                         System.out.println("getSource: " + accessToken.getSource());
 
 
-                        //GraphRequestAsyncTask request =
-                        GraphRequest.newMeRequest(accessToken, new GraphRequest.GraphJSONObjectCallback() {
+//                        /* make the API call */
+//                        new Request(session, "/{user-id}", null, HttpMethod.GET, new Request.Callback() {
+//                            public void onCompleted(Response response) {
+//                                        /* handle the result */
+//                            }
+//                        }
+//                        ).executeAsync();
 
+
+                        //GraphRequestAsyncTask request =
+                        GraphRequest request = GraphRequest.newMeRequest(accessToken, new GraphRequest.GraphJSONObjectCallback() {
                             @Override
                             public void onCompleted(JSONObject json, GraphResponse response) {
                                 if (response.getError() != null) {
@@ -104,11 +119,14 @@ public class MainActivity extends ActionBarActivity {
                                         String jsonresult = String.valueOf(json);
                                         System.out.println("JSON Result" + jsonresult);
 
-                                        String str_email = json.getString("email");
+                                        //String age_range = json.getString("age_range");
+                                        // important
+
                                         String str_id = json.getString("id");
                                         String str_firstname = json.getString("first_name");
                                         String str_lastname = json.getString("last_name");
 
+                                        //System.out.println("age_range: " + age_range);
 
                                         tv.setText("Hi " + str_firstname + " " + str_lastname + ".\nThank you for logging in.");
 
@@ -117,7 +135,12 @@ public class MainActivity extends ActionBarActivity {
                                     }
                                 }
                             }
-                        }).executeAsync();
+                        });
+                        // Only retrieve the data we want
+                        Bundle parameters = new Bundle();
+                        parameters.putString("fields", "id,name,first_name,last_name,birthday");
+                        request.setParameters(parameters);
+                        request.executeAsync();
 
 
                         System.out.println("CurrentPermission:" + AccessToken.getCurrentAccessToken().getPermissions());
