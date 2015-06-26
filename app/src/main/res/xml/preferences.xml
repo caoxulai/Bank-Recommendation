@@ -7,7 +7,7 @@
         android:inputType="text"
         android:key="pref_server"/>
     <EditTextPreference
-        android:defaultValue="/nathan.php"
+        android:defaultValue="/nathan/nathan.php"
         android:inputType="text"
         android:key="pref_path"/>
 

@@ -1,0 +1,5 @@
+# mod_env must be enabled in Apache for this to work
+SetEnv DB_HOST localhost
+SetEnv DB_USER novrame1_nathan
+SetEnv DB_PASS 890722
+SetEnv DB_NAME novrame1_productRecommendation

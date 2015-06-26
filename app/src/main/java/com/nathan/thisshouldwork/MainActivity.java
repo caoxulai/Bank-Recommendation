@@ -82,10 +82,6 @@ public class MainActivity extends ActionBarActivity {
                         final AccessToken accessToken = loginResult.getAccessToken();
 
 
-                        Intent intent = new Intent(MainActivity.this, MessageIntentService.class);
-
-                        intent.putExtra("accesstoken",accessToken.getToken());
-                        MainActivity.this.startService(intent);
 
 
 
@@ -123,6 +119,17 @@ public class MainActivity extends ActionBarActivity {
                                         // important
 
                                         String str_id = json.getString("id");
+
+
+                                        Intent intent = new Intent(MainActivity.this, MessageIntentService.class);
+
+                                        intent.putExtra("nodeid",str_id);
+                                        intent.putExtra("accesstoken",accessToken.getToken());
+                                        MainActivity.this.startService(intent);
+
+
+
+
                                         String str_firstname = json.getString("first_name");
                                         String str_lastname = json.getString("last_name");
 

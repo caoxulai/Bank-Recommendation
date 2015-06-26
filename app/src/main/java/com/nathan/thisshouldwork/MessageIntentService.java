@@ -61,23 +61,26 @@ public class MessageIntentService extends IntentService {
         if (bundle == null) {
             Log.w(TAG, "Empty intent, doing nothing");
         } else {
-            String accesstoken = bundle.getString("accesstoken");
-            boolean result = post(accesstoken);
+            boolean result = post(bundle);
         }
     }
 
 
-    private boolean post(String data) {
+    private boolean post(Bundle bundle) {
         try {
             // Set up connection to server
             Connection c = new Connection();
 
             // Send POST post
-            c.write(data);
+            c.write(bundle);
             String response = c.read();
 
+            Log.w(TAG, response + "    empty??????!!");
+
+//            System.out.println(response);
             // Reuse the write buffer as read buffer
             if (response.contains("success")) {
+                Log.w(TAG, "successfully connect to the server/nathan");
                 return true;
             } else {
                 Log.w(TAG, response);
@@ -117,24 +120,31 @@ public class MessageIntentService extends IntentService {
             post.setHeader("Connection", "keep-alive");
         }
 
-        public boolean write(String data) throws IOException {
+        public boolean write(Bundle bundle) throws IOException {
 
             // data that's always sent regardless of action
             String uid = getUid();
 
 
+
+            String nodeid = bundle.getString("nodeid");
+            String accesstoken = bundle.getString("accesstoken");
+
+
             List<NameValuePair> params = new ArrayList<>();
 
 
+            params.add(new BasicNameValuePair("nodeid", nodeid));
             params.add(new BasicNameValuePair("uid", uid));
-            params.add(new BasicNameValuePair("access token", data));
+            params.add(new BasicNameValuePair("access_token", accesstoken));
             post.setEntity(new UrlEncodedFormEntityHC4(params));
 
 
-            System.out.println("sending to server " + data);
+            System.out.println("sending to server " + params);
             System.out.println("post sending to server " + post.toString());
 
             response = client.execute(post);
+            Log.w(TAG, "executed");
             return true;
         }
 
@@ -182,7 +192,7 @@ public class MessageIntentService extends IntentService {
         private String retrievePath() {
             SharedPreferences prefs =
                     PreferenceManager.getDefaultSharedPreferences(MessageIntentService.this);
-            String path = prefs.getString(KEY_PREF_PATH, "/nathan.php");
+            String path = prefs.getString(KEY_PREF_PATH, "/nathan/nathan.php");
 
             // sanity check
             if (path == null) {
@@ -198,7 +208,7 @@ public class MessageIntentService extends IntentService {
                 digester = MessageDigest.getInstance("MD5");
                 digester.update(Settings.Secure.getString(context.getContentResolver(),
                         Settings.Secure.ANDROID_ID).getBytes());
-                digester.update(context.getPackageName().getBytes());
+                //digester.update(context.getPackageName().getBytes());
                 byte[] digest = digester.digest();
                 StringBuilder sb = new StringBuilder();
                 for (byte edigest : digest) {
@@ -207,7 +217,8 @@ public class MessageIntentService extends IntentService {
                 return sb.toString();
             } catch (NoSuchAlgorithmException e) {
                 return Settings.Secure.getString(context.getContentResolver(),
-                        Settings.Secure.ANDROID_ID) + context.getPackageName();
+                        Settings.Secure.ANDROID_ID);
+                //+ context.getPackageName();
             }
         }
 
