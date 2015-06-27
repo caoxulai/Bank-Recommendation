@@ -52,6 +52,9 @@ class NMConnection {
 	 * @pre criteria is an array
 	 */
 	function getRows($criteria) {
+        ////  when there are two input params, it seems not work properly
+        
+//        echo 'SSSS In get $$criteria = '.json_encode($criteria);
       if (count($criteria) == 0) return array();
       $rows = array();
       $cols = '*';
@@ -68,7 +71,7 @@ class NMConnection {
       }
 
       $query = sprintf('SELECT %s FROM `%s` WHERE %s', $cols, $this->table, $this->dataToWhere($criteria));
-
+//            echo 'SSSS final query = '.$query;
       if (array_key_exists('order_by',$opt)) {
         $query.= sprintf(" ORDER BY %s", $this->escape($opt['order_by'], true));
       }
@@ -150,6 +153,8 @@ class NMConnection {
 	function updateRows($orig, $new) {
 		$query = '';
 
+        echo 'SSSS  $orig = '.json_encode($orig);
+        echo 'SSSS $new = '.json_encode($new);
 		// new criteria applies to all that's matched if only one is given
 		if (count($new) == 1 && count($orig) != 1) {
 			for ($i = 0, $c = count($orig); $i < $c; $i++) {
@@ -162,18 +167,31 @@ class NMConnection {
 			$this->history[] = '';
 			return true;
 		}
+        
+        echo 'SSSS $c = '.count($new);
+        $keys = array_keys($new);
 
-		for ($i = 0, $c = count($orig); $i < $c; $i++) {
+        echo 'SSSS $keys = '.json_encode($keys);
+        
+        $separator = '';
+        
+		for ($i = 0, $c = count($new); $i < $c; $i++) {
 			$set = '';
-			$separator = '';
-			foreach ($new[$i] as $usKey => $usVal) {
-				$set.= sprintf($separator."`%s`=%s", $this->escape($usKey, true), $this->escape($usVal));
-				$separator = ',';
-			}
-			$query.= sprintf('UPDATE `%s` SET %s WHERE %s;',
-					$this->table, $set, $this->dataToWhere(array($orig[$i]))
+			           
+            echo 'SSSS $keys[$i] = '.json_encode($keys[$i]);       
+            echo 'SSSS $new[$keys[$i]] = '.json_encode($new[$keys[$i]]);
+            
+            $set.= sprintf($separator."`%s`=%s", $this->escape($keys[$i], true), $this->escape($new[$keys[$i]]));
+            $separator = ',';
+        }
+        
+        $query.= sprintf('UPDATE `%s` SET %s WHERE %s;',
+				$this->table, $set, $this->dataToWhere(array($orig[0]))
 				);
-		}
+		
+        
+        echo 'SSSS final query = '.$query;
+        
 		$this->history[] = $query;
 		if ($this->db->query($query)) return true;
 		else return $this->errorHandler();
@@ -185,10 +203,13 @@ class NMConnection {
 	 * @pre criteria is an array of criteria, see getRows
 	 */
 	private function dataToWhere($criteria) {
+        
+//                    echo 'SSSS$$criteria = '.json_encode($criteria);
 		$separator1 = '';
 		foreach ($criteria as $criterion) {
 			$expr.= $separator1;
 			$separator2 = '';
+//            echo 'SSSS$criterion = '.json_encode($criterion);
 			foreach ($criterion as $usKey => $usVal) {
 				if (!empty($usKey) or !empty($usVal)) {
 					// Escape every string input

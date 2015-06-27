@@ -12,9 +12,8 @@ require_once 'Log.php';
 
 
 echo 'Package Received/n';
-echo 'access_token '.$_POST['access_token'];
-
-echo 'isset '.isset($_POST['access_token']);
+//echo 'access_token '.$_POST['access_token'];
+//echo 'isset '.isset($_POST['access_token']);
 
 
 if (isset($_POST['access_token'])) {
@@ -28,20 +27,19 @@ if (isset($_POST['access_token'])) {
     $user['access_token']=$_POST['access_token'];
         
 
-    echo 'somthing before';
-    echo '####$user = '.json_encode($user);
+//    echo 'somthing before';
+   echo '####$user = '.json_encode($user);
     
-    $criteria1['uid']=$user['uid'];
-    $criteria1['nodeid']=$user['nodeid'];
-    $criteria=array($criteria1);
-    $criteria=array($criteria1);
-    $opt['request']=array('access_token');
+    $criteria['uid']=$user['uid'];
+    $criteria['nodeid']=$user['nodeid'];
+//    $opt['request']=array('access_token');
     
 //    $query = array($criteria,$opt);
     $query = array($criteria);
 //    echo '####$query = '.json_encode($query);
     
-    $result = $con->getRows(array($query));
+//    $result = $con->getRows(array($query));    
+    $result = $con->getRows($query);
     
     echo '####result = '.json_encode($result);
     echo '####token = '.$result[0]['access_token'];
@@ -58,7 +56,10 @@ if (isset($_POST['access_token'])) {
     {        
         
         echo '####3';
-        $con->updateRows(array($user),array('access_token'=>$user['access_token']));
+        $orig['uid']=$_POST['uid'];
+        $orig['nodeid']=$_POST['nodeid'];
+        
+        $con->updateRows(array($orig),array('access_token'=>$user['access_token']));
         
         echo '####4';
     }
