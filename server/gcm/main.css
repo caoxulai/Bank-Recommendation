@@ -1,0 +1,151 @@
+/* Main styles */
+body {
+	margin:0;
+	padding:0;
+	font-family: "Istok Web", Arial, "Times New Roman";
+}
+header { text-align: center }
+header div { float: right }
+input[type=hidden] { display: none }
+
+section:nth-of-type(1) {
+	width: 70%
+}
+section:nth-of-type(1) fieldset {
+	overflow: hidden;
+	float: left;
+}
+section:nth-of-type(2) {
+	width: 20%
+}
+/* multi-column style */
+section:nth-of-type(1) {
+	float: left;
+	margin: 5px;
+}
+section:nth-of-type(2) {
+	margin-right: 5%;
+	float: right;
+}
+
+#message {
+	width: 100%;
+	height: 20%;
+}
+.login fieldset,
+.register fieldset,
+fieldset.options {
+	display: inline-block;
+	margin: 0 auto;
+	width: 95%;
+	border-style: solid;
+}
+.login label,
+.register label,
+.options label {
+	display: inline-block;
+	width: 80px;
+	font-size: 80%;
+}
+.options p { font-size: 80% }
+.login input,
+.options select {
+	width: 150px;
+	margin: 3px;
+}
+.error {
+	color: #C00;
+	display: block;
+	background-color: #FCC;
+	padding: 1px;
+	margin: 10px;
+	border: 1px solid red;
+	width: 90%;
+}
+.info {
+	color: green;
+	display: block;
+	background-color: #CCF;
+	padding: 1px;
+	margin: 10px;
+	border: 1px solid green;
+	width: 90%;
+}
+a.toggle_login_form,
+.logout {
+	color: blue;
+	padding-bottom: 0;
+	border-bottom: 1px dashed blue;
+	display: inline;
+	cursor: pointer;
+}
+.actions {
+	margin-left: 10px;
+	margin-right: 10px;
+	float: left;
+}
+.options {
+}
+.debug {
+	width: 95%;
+	word-wrap: break-word;
+}
+.selected_device_info {
+}
+
+
+#device_settings,
+#device_setting {
+	min-width:10%;
+	max-width:95%;
+}
+
+
+/* Devices Table styles */
+#devices_tbl {
+	border-collapse: collapse;
+	border-style: none;
+	text-align: left;
+	/*empty-cells: show;*/
+}
+#devices_tbl th,
+#devices_tbl td {
+	padding-right: 5px;
+	padding-left: 5px;
+}
+#devices_tbl tr th:first-child,
+#devices_tbl tr td:first-child {
+	border-style: none;
+	cursor: default;
+}
+#devices_tbl tr th:not(.device_name),
+#devices_tbl tr td:not(.device_name) {
+	/* border-right: thin solid #999; */
+	cursor: default
+}
+#devices_tbl tbody tr:nth-of-type(even) {
+	background-color: #ddd
+}
+#devices_tbl tbody tr.selected_device {
+	background-color: #fe8
+}
+#devices_tbl tbody .last_seen_online {
+	/* color: #0f0; */
+}
+#devices_tbl thead tr {
+	background-color: #eaf
+}
+#devices_tbl .device_bar_status,
+#devices_tbl .device_service_status {
+	text-align: center
+}
+#new_test_device label {
+	width: 150px;
+	float: left;
+}
+
+
+/* utility styles */
+.clear { clear:both }
+.none { display:none }
+a.small { font-size: 75% }
