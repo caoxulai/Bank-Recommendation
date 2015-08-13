@@ -1,39 +1,74 @@
+// 02. Give each category a label
+
 <?php
 
-$json_url = "http://www.novramedialabs.com/nathan/results.json";
-$json = json_decode(file_get_contents($json_url), true);
+$file = "travel_insurance";
+$new_array = filter_n_label($file,11);
 
+$file = "travel";
+filter_n_label($file,12);
 
-$data_array = $json['data'];
-//$name_array = array();
-//
-//
-//
-//foreach($data_array as $data){
-//    $name_array[] = $data['name'];
-//}     
+$file = "vacation";
+filter_n_label($file,13);
 
+$file = "mortgage";
+filter_n_label($file,21);
 
-$name_array = extract_field($data_array, 'name');
+$file = "house_sale";
+filter_n_label($file,22);
 
-$fp = fopen('name.json', 'w');
-fwrite($fp, json_encode($name_array));
-fclose($fp);
+$file = "apartment_sale";
+filter_n_label($file,23);
 
+$file = "credit_card";
+filter_n_label($file,31);
+
+$file = "saving";
+filter_n_label($file,32);
+
+$file = "invest";
+filter_n_label($file,41);
+
+$file = "wealth";
+filter_n_label($file,42);
+
+$file = "banking";
+filter_n_label($file,51);
+
+$file = "credit";
+filter_n_label($file,52);
+
+$file = "finance";
+filter_n_label($file,53);
 
 ?>
 
 
 <?php
-function extract_field($array, $field) {
+// label different categories with its label, why label?
+function filter_n_label($file, $ori_label) {
+    
+    $json_url = "http://www.novramedialabs.com/nathan/raw_".$file.".json";
+    $data_array = json_decode(file_get_contents($json_url), true);
     
     $result_array = array();
 
-    foreach($array as $node){
-    $result_array[] = $node[$field];
+    foreach($data_array as $node){
+        if (array_key_exists('description',$node)) {
+            $new_node = array('ori_label'=>$ori_label,'name' => $node['name'], 'description' => $node['description']);
+            $result_array[] = $new_node;
+        }    
     }    
     
-    return $result_array;
+    $elementCount  = count($result_array);
+    echo "###".$elementCount;
+        
+    $file_name = $file.'.json';
+    $fp = fopen($file_name, 'w');
+    fwrite($fp, json_encode($result_array));
+    fclose($fp);   
+        
+    return $result_array; 
 }
 ?>
 
@@ -46,20 +81,11 @@ function extract_field($array, $field) {
   <body>
     <h1>Display Json Data</h1>
 
-
-
-    <h3>PHP Session</h3>
-    <pre>I don't really understand <?php print_r($_SESSION); ?></pre>
-
-    <?php if ($json): ?>
-      <h3>Data</h3>
-      <pre><?php print_r($data_array); ?></pre> 
+    <?php if ($new_array): ?>
+            
+      <h3>$new_array</h3>
+      <pre><?php print_r($new_array); ?></pre> 
       
-      <h3>Name</h3>
-      <pre><?php print_r($name_array); ?></pre> 
-      
-      <h3>Data you got</h3>
-      <pre><?php print_r($json); ?></pre>
     <?php else: ?>
       <strong><em>No data found.</em></strong>
     <?php endif ?>

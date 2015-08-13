@@ -73,6 +73,8 @@
 
 # Python Package
 **/Python_Package/
+!libsvm.dll
+!*.exe
 
 # feature martrix
 feature.csv
