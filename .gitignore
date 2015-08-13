@@ -70,3 +70,9 @@
 **/.sdk_delta.info
 
 # Project specific
+
+# Python Package
+**/Python_Package/
+
+# feature martrix
+feature.csv
