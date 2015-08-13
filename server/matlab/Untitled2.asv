@@ -1,0 +1,40 @@
+clc
+
+[m,n] = size(Ck);
+stats = zeros(30,17,n);
+
+for i = 1:n
+    for k = 1:n
+
+        % a = unique(Ck(:,i));
+
+        count_i
+
+
+
+    end
+
+
+
+end
+
+
+function index = l_to_i(label)
+switch(label)
+    case 11
+        index = 1;    case 12
+        index = 1;    case 13
+        index = 1;    case 21
+        index = 1;    case 22
+        index = 1;    case 23
+        index = 1;    case 31
+        index = 1;    case 41
+        index = 1;    case 42
+        index = 1;    case 51
+        index = 1;    case 11
+        index = 1;    case 11
+        index = 1;    case 11
+        index = 1;    case 11
+        index = 1;    case 11
+        index = 1;
+end
