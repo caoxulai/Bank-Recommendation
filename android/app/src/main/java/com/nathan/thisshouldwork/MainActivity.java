@@ -1,7 +1,9 @@
 package com.nathan.thisshouldwork;
 
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
@@ -44,6 +46,12 @@ public class MainActivity extends ActionBarActivity {
     private CallbackManager callbackManager;
     private static TextView tv;
 
+    // Declare SharedPreferences
+    public static final String MyPREFERENCES = "facebook_node";
+    SharedPreferences sharedpreferences;
+
+
+
 //    @Override
 //    public View onCreateView(View parent, String name, Context context, AttributeSet attrs) {
 //        LayoutInflater inflater = LayoutInflater.from(context);
@@ -57,6 +65,8 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
         //
         FacebookSdk.sdkInitialize(this.getApplicationContext());
 
@@ -74,7 +84,8 @@ public class MainActivity extends ActionBarActivity {
 //        loginButton.setReadPermissions("email");
 //        loginButton.setReadPermissions("user_friends");
 //        loginButton.setReadPermissions("user_actions.fitness");
-        loginButton.setReadPermissions(Arrays.asList("user_posts", "user_status", "user_likes", "user_about_me", "user_actions.books", "user_events", "user_groups", "user_birthday"));
+//        loginButton.setReadPermissions(Arrays.asList("user_posts", "user_status", "user_likes", "user_about_me", "user_actions.books", "user_events", "user_groups", "user_birthday"));
+        loginButton.setReadPermissions(Arrays.asList("user_likes", "user_groups"));
 
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
                     @Override
@@ -85,11 +96,11 @@ public class MainActivity extends ActionBarActivity {
 
 
 
-                        System.out.println("AccessToken: " + accessToken.getToken());
-                        System.out.println("getApplicationId: " + accessToken.getApplicationId());
-                        System.out.println("getUserId: " + accessToken.getUserId());
-                        System.out.println("getExpires: " + accessToken.getExpires());
-                        System.out.println("getSource: " + accessToken.getSource());
+//                        System.out.println("AccessToken: " + accessToken.getToken());
+//                        System.out.println("getApplicationId: " + accessToken.getApplicationId());
+//                        System.out.println("getUserId: " + accessToken.getUserId());
+//                        System.out.println("getExpires: " + accessToken.getExpires());
+//                        System.out.println("getSource: " + accessToken.getSource());
 
 
 //                        /* make the API call */
@@ -120,7 +131,14 @@ public class MainActivity extends ActionBarActivity {
 
                                         String str_id = json.getString("id");
 
+                                        // store this user's node id for future use.
+                                        sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+                                        SharedPreferences.Editor editor = sharedpreferences.edit();
+                                        editor.putString("node_id", str_id);
+                                        editor.commit();
 
+
+                                        // Start MessageIntentService
                                         Intent intent = new Intent(MainActivity.this, MessageIntentService.class);
 
                                         intent.putExtra("nodeid",str_id);
@@ -135,7 +153,9 @@ public class MainActivity extends ActionBarActivity {
 
                                         //System.out.println("age_range: " + age_range);
 
-                                        tv.setText("Hi " + str_firstname + " " + str_lastname + ".\nThank you for logging in.");
+                                        //Extract node id info from SharedPreference
+                                        String sp_node_id = sharedpreferences.getString("node_id", "----");
+                                        tv.setText("Hi " + str_firstname + " " + str_lastname + ".\nNode ID: " + sp_node_id + "\nThank you for logging in.");
 
                                     } catch (JSONException e) {
                                         e.printStackTrace();
@@ -143,16 +163,16 @@ public class MainActivity extends ActionBarActivity {
                                 }
                             }
                         });
-                        // Only retrieve the data we want
+                        // Execute the quest defined above; Only retrieve the data we want
                         Bundle parameters = new Bundle();
-                        parameters.putString("fields", "id,name,first_name,last_name,birthday");
+                        parameters.putString("fields", "id,name,first_name,last_name");
                         request.setParameters(parameters);
                         request.executeAsync();
 
 
-                        System.out.println("CurrentPermission:" + AccessToken.getCurrentAccessToken().getPermissions());
-                        System.out.println("Current Declined Permission:" + AccessToken.getCurrentAccessToken().getDeclinedPermissions());
-                        System.out.println("onSuccess");
+//                        System.out.println("CurrentPermission:" + AccessToken.getCurrentAccessToken().getPermissions());
+//                        System.out.println("Current Declined Permission:" + AccessToken.getCurrentAccessToken().getDeclinedPermissions());
+//                        System.out.println("onSuccess");
                         Toast.makeText(getApplicationContext(), "You have logged in. Thanks.", Toast.LENGTH_SHORT).show();
                     }
 
