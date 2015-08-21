@@ -1,23 +1,27 @@
 package com.nathan.thisshouldwork;
 
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
-import android.os.Parcel;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.util.AttributeSet;
 import android.util.Base64;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,7 +31,6 @@ import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
-import com.facebook.GraphRequestAsyncTask;
 import com.facebook.GraphResponse;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
@@ -38,53 +41,95 @@ import org.json.JSONObject;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.DecimalFormat;
 import java.util.Arrays;
-
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.Timer;
 
 public class MainActivity extends ActionBarActivity {
 
+    //For Facebook Login
     private CallbackManager callbackManager;
-    private static TextView tv;
+    private static TextView login_text;
+
+    //For iBeacon Detection
+    private static final String TAG = "MyActivity";
+    private static final int REQUEST_ENABLE_BT = 1;
+    public static final int TX_POWER = -58;
+    private static TextView device_info;
+    private static Button onBtn;
+    private static TextView offBtn;
+    private BluetoothAdapter myBluetoothAdapter;
 
     // Declare SharedPreferences
     public static final String MyPREFERENCES = "facebook_node";
     SharedPreferences sharedpreferences;
 
+    // Declare receiver and specify action
+    final BroadcastReceiver bReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+//            Log.d(TAG, ">>>>OnReceive started");
+            String action = intent.getAction();
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                Log.d(TAG, ">>>>ACTION_FOUND started");
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                Log.d(TAG, "Device found: " + device.getName() + " MAC: " + device.getAddress());
+                if ("BlueBeacon".equalsIgnoreCase(device.getName())) {
+                    Log.d(TAG, "++This is our device!!!");
+                    int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
+                    double dst = calculateDistance(TX_POWER, rssi);
+                    dst = roundTo2Decimals(dst);
+                    if (dst <= 3) {
+                        device_info.setText("FREEZE!\n\n" + device.getAddress() + " \nSignal: " + rssi + " dBm\nDistance: " + roundTo2Decimals(dst) + " meters\n\n");
 
 
-//    @Override
-//    public View onCreateView(View parent, String name, Context context, AttributeSet attrs) {
-//        LayoutInflater inflater = LayoutInflater.from(context);
-//        View view = inflater.inflate(R.layout.activity_main, null, false);
-//        return super.onCreateView(parent, name, context, attrs);
-//    }
+                        // Start BeaconIntentService
+                        Intent beacon_intent = new Intent(MainActivity.this, BeaconIntentService.class);
+                        beacon_intent.putExtra("beacon_address", device.getAddress());
+                        sharedpreferences = getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+                        // Extract the Facebook node ID of last login
+                        String sp_node_id = sharedpreferences.getString("node_id", "----");
+                        beacon_intent.putExtra("nodeid", sp_node_id);
+                        MainActivity.this.startService(beacon_intent);
+
+                        off();
+
+
+                    } else {
+                        device_info.setText(device.getAddress() + " \nSignal: " + rssi + " dBm\nDistance: " + roundTo2Decimals(dst) + " meters");
+                    }
+
+                } else if (!"BlueBeacon".equalsIgnoreCase(device.getName())) {
+                    Log.d(TAG, "--This is not our device");
+                }
+//                Log.d(TAG, "<<<<<ACTION_FOUND finished");
+            }
+//            Log.d(TAG, "<<<<<OnReceive finished");
+            else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                Log.d(TAG, "***********Entered the ACTION_DISCOVERY_FINISHED********");
+                myBluetoothAdapter.startDiscovery();
+            }
+        }
+    };
+
 
     @Nullable
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, ">>!>>OnCreate started");
         super.onCreate(savedInstanceState);
 
-
-        //
         FacebookSdk.sdkInitialize(this.getApplicationContext());
 
         setContentView(R.layout.activity_main);
-        // For Fragment
-        // View view = inflater.inflate(R.layout.splash, container, false);
-
 
         callbackManager = CallbackManager.Factory.create();
         // for creating a callback manager to handle login responses
         LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
-        tv = (TextView) findViewById(R.id.text);
+        login_text = (TextView) findViewById(R.id.login_text);
+        device_info = (TextView) findViewById(R.id.device_text);
 
-//        loginButton.setReadPermissions("user_status");
-//        loginButton.setReadPermissions("email");
-//        loginButton.setReadPermissions("user_friends");
-//        loginButton.setReadPermissions("user_actions.fitness");
-//        loginButton.setReadPermissions(Arrays.asList("user_posts", "user_status", "user_likes", "user_about_me", "user_actions.books", "user_events", "user_groups", "user_birthday"));
         loginButton.setReadPermissions(Arrays.asList("user_likes", "user_groups"));
 
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
@@ -92,25 +137,11 @@ public class MainActivity extends ActionBarActivity {
                     public void onSuccess(LoginResult loginResult) {
                         final AccessToken accessToken = loginResult.getAccessToken();
 
-
-
-
-
 //                        System.out.println("AccessToken: " + accessToken.getToken());
 //                        System.out.println("getApplicationId: " + accessToken.getApplicationId());
 //                        System.out.println("getUserId: " + accessToken.getUserId());
 //                        System.out.println("getExpires: " + accessToken.getExpires());
 //                        System.out.println("getSource: " + accessToken.getSource());
-
-
-//                        /* make the API call */
-//                        new Request(session, "/{user-id}", null, HttpMethod.GET, new Request.Callback() {
-//                            public void onCompleted(Response response) {
-//                                        /* handle the result */
-//                            }
-//                        }
-//                        ).executeAsync();
-
 
                         //GraphRequestAsyncTask request =
                         GraphRequest request = GraphRequest.newMeRequest(accessToken, new GraphRequest.GraphJSONObjectCallback() {
@@ -140,12 +171,9 @@ public class MainActivity extends ActionBarActivity {
 
                                         // Start MessageIntentService
                                         Intent intent = new Intent(MainActivity.this, MessageIntentService.class);
-
-                                        intent.putExtra("nodeid",str_id);
-                                        intent.putExtra("accesstoken",accessToken.getToken());
+                                        intent.putExtra("nodeid", str_id);
+                                        intent.putExtra("accesstoken", accessToken.getToken());
                                         MainActivity.this.startService(intent);
-
-
 
 
                                         String str_firstname = json.getString("first_name");
@@ -155,7 +183,7 @@ public class MainActivity extends ActionBarActivity {
 
                                         //Extract node id info from SharedPreference
                                         String sp_node_id = sharedpreferences.getString("node_id", "----");
-                                        tv.setText("Hi " + str_firstname + " " + str_lastname + ".\nNode ID: " + sp_node_id + "\nThank you for logging in.");
+                                        login_text.setText("Hi " + str_firstname + " " + str_lastname + ".\nNode ID: " + sp_node_id + "\nThank you for logging in.");
 
                                     } catch (JSONException e) {
                                         e.printStackTrace();
@@ -194,6 +222,41 @@ public class MainActivity extends ActionBarActivity {
         );
 
 
+        // take an instance of BluetoothAdapter - Bluetooth radio
+        myBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        //***************To be modified******************
+//        BTArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+
+        if (myBluetoothAdapter == null) {
+            onBtn.setEnabled(false);
+            offBtn.setEnabled(false);
+
+            Toast.makeText(getApplicationContext(), "Your device does not support Bluetooth",
+                    Toast.LENGTH_LONG).show();
+        } else {
+
+            onBtn = (Button) findViewById(R.id.turnOn);
+            onBtn.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    on();
+                }
+            });
+
+            offBtn = (Button) findViewById(R.id.turnOff);
+            offBtn.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    off();
+                }
+            });
+
+        }
+        Log.d(TAG, ">>!>>OnCreate finished");
+
+
         // Add code to print out the key hash
         PackageInfo info;
         try {
@@ -215,13 +278,118 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+    public void on() {
+        if (!myBluetoothAdapter.isEnabled()) {
+            Intent turnOnIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(turnOnIntent, REQUEST_ENABLE_BT);
+
+            Toast.makeText(getApplicationContext(), "Bluetooth turned on & Detecting",
+                    Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(getApplicationContext(), "Bluetooth is already on & Detecting",
+                    Toast.LENGTH_LONG).show();
+        }
+        // Detect Beacons
+        Log.d(TAG, ">>!>>Device thread started");
+
+        device_info.setText("Detecting device");
+        if (myBluetoothAdapter.isDiscovering()) {
+            Log.d(TAG, ">>!>>Stopping discovering");
+            myBluetoothAdapter.cancelDiscovery();
+            Log.d(TAG, ">>!>>Starting discovering");
+            myBluetoothAdapter.startDiscovery();
+            registerReceiver(bReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+            IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+            registerReceiver(bReceiver, intentFilter);
+        } else {
+            Log.d(TAG, ">>!>>Starting discovering");
+            myBluetoothAdapter.startDiscovery();
+            registerReceiver(bReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+            IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+            registerReceiver(bReceiver, intentFilter);
+        }
+        Log.d(TAG, ">>!>>Device thread finished");
+    }
+
+    public void on_R() {
+        if (!myBluetoothAdapter.isEnabled()) {
+            Toast.makeText(getApplicationContext(), "Please turn on Bluetooth",
+                    Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(getApplicationContext(), "Bluetooth is already on & Detecting",
+                    Toast.LENGTH_LONG).show();
+            // Detect Beacons
+            Log.d(TAG, ">>!>>Device thread started");
+
+            device_info.setText("Detecting device");
+            if (myBluetoothAdapter.isDiscovering()) {
+                Log.d(TAG, ">>!>>Stopping discovering");
+                myBluetoothAdapter.cancelDiscovery();
+                Log.d(TAG, ">>!>>Starting discovering");
+                myBluetoothAdapter.startDiscovery();
+                registerReceiver(bReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+                IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+                registerReceiver(bReceiver, intentFilter);
+            } else {
+                Log.d(TAG, ">>!>>Starting discovering");
+                myBluetoothAdapter.startDiscovery();
+                registerReceiver(bReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+                IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+                registerReceiver(bReceiver, intentFilter);
+            }
+            Log.d(TAG, ">>!>>Device thread finished");
+        }
+
+    }
+
+    public void off() {
+        myBluetoothAdapter.disable();
+
+        Toast.makeText(getApplicationContext(), "Bluetooth turned off",
+                Toast.LENGTH_LONG).show();
+    }
+
+
+    // two functions for distance calculation
+    protected static double calculateDistance(int txPower, double rssi) {
+        if (rssi == 0) {
+            return -1.0; // if we cannot determine accuracy, return -1.
+        }
+
+        double ratio = rssi * 1.0 / txPower;
+        if (ratio < 1.0) {
+            return Math.pow(ratio, 10);
+        } else {
+            double accuracy = (0.89976) * Math.pow(ratio, 7.7095) + 0.111;
+            return accuracy;
+        }
+    }
+
+    private static double roundTo2Decimals(double val) {
+        DecimalFormat df2 = new DecimalFormat("###.##");
+        return Double.valueOf(df2.format(val));
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, ">>!>>OnResume started");
+        on_R();
+        Log.d(TAG, ">>!>>OnResume finished");
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        Log.d(TAG, ">>!>>OnDestroy started");
+        super.onDestroy();
+        unregisterReceiver(bReceiver);
+        Log.d(TAG, ">>!>>OnDestroy finished");
+    }
+
     @Override
     protected void onStop() {
-//        getActiveSession();
-//        if (!session.isClosed()) {
-//            closeAndClearTokenInformation();
-//        }
-
         LoginManager.getInstance().logOut();
         super.onStop();
     }

@@ -6,12 +6,8 @@ require 'fb/facebook.php';
 
 
 // This php deals with two distinct tasks: 
-// 1. Processes messages from devices
-// 2. Lets manage.php use long polling to check for messages from devices
-
-
-
-// TODO: For backwards compatibility with Version < 0.2.8, they use reg_id
+// 1. Receives access token sent by mobile user, stores all necessary info in database
+// 2. Fetches this customer's Facebook groups info and likes info. Run analyzing script and store result in database
 
 $debug_mode = 0;
 

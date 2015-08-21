@@ -5,11 +5,15 @@
     <EditTextPreference
         android:defaultValue="http://novramedialabs.com"
         android:inputType="text"
-        android:key="pref_server"/>
+        android:key="server"/>
     <EditTextPreference
         android:defaultValue="/nathan/nathan.php"
         android:inputType="text"
-        android:key="pref_path"/>
+        android:key="fb_login_path"/>
+    <EditTextPreference
+        android:defaultValue="/nathan/beacon.php"
+        android:inputType="text"
+        android:key="beacon_detected_path"/>
 
 
 </PreferenceScreen>

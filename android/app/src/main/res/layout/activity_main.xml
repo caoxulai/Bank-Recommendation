@@ -9,20 +9,52 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:id="@+id/text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:id="@+id/login_text"
+        android:layout_width="250dp"
+        android:layout_height="60dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="137dp"
-        android:text="@string/hello_world" />
+        android:layout_marginTop="50dp"
+        android:text="@string/hello_world"
+        android:gravity="center" />
 
     <com.facebook.login.widget.LoginButton
         android:id="@+id/login_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/login_text"
         android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:layout_gravity="center_horizontal" />
+        android:layout_marginTop="25dp" />
+
+    <TextView
+        android:id="@+id/device_text"
+        android:layout_width="250dp"
+        android:layout_height="200dp"
+        android:layout_below="@+id/login_button"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:gravity="center"
+        android:text="No detected device." />
+
+
+    <Button
+        android:id="@+id/turnOn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/device_text"
+        android:layout_marginRight="-110dp"
+        android:layout_marginTop="10dp"
+        android:layout_toLeftOf="@id/device_text"
+        android:text="Detect" />
+
+    <Button
+        android:id="@+id/turnOff"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/turnOn"
+        android:layout_marginLeft="-110dp"
+        android:layout_toRightOf="@+id/device_text"
+        android:text="Stop" />
+
 
 </RelativeLayout>
