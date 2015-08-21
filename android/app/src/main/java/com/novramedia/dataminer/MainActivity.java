@@ -1,4 +1,4 @@
-package com.nathan.thisshouldwork;
+package com.novramedia.dataminer;
 
 
 import android.bluetooth.BluetoothAdapter;
@@ -19,9 +19,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,9 +41,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
 import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.Timer;
 
 public class MainActivity extends ActionBarActivity {
 

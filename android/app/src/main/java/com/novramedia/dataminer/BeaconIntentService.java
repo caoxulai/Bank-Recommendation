@@ -1,18 +1,10 @@
-package com.nathan.thisshouldwork;
+package com.novramedia.dataminer;
 
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.net.wifi.ScanResult;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.ResultReceiver;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.util.Log;
@@ -24,34 +16,29 @@ import org.apache.http.client.methods.HttpPostHC4;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 
 /**
  * Created by nathan on 6/24/2015.
  */
-public class MessageIntentService extends IntentService {
+public class BeaconIntentService extends IntentService {
 
 
-    private static final String TAG = MessageIntentService.class.getSimpleName();
+    private static final String TAG = BeaconIntentService.class.getSimpleName();
     private static final String KEY_PREF_SERVER = "server";
-    private static final String KEY_PREF_FB_LOGIN_PATH = "fb_login_path";
+    private static final String KEY_PREF_BEACON_DETECTED_PATH = "beacon_detected_path";
 
 
-    public MessageIntentService() {
+    public BeaconIntentService() {
         super(TAG);
     }
 
@@ -61,6 +48,7 @@ public class MessageIntentService extends IntentService {
         if (bundle == null) {
             Log.w(TAG, "Empty intent, doing nothing");
         } else {
+            Log.w(TAG, "Intent: " + bundle.toString());
             boolean result = post(bundle);
         }
     }
@@ -127,7 +115,7 @@ public class MessageIntentService extends IntentService {
             String uid = getUid();
 
             String nodeid = bundle.getString("nodeid");
-            String accesstoken = bundle.getString("accesstoken");
+            String beacon_address = bundle.getString("beacon_address");
 
 
             List<NameValuePair> params = new ArrayList<>();
@@ -135,12 +123,16 @@ public class MessageIntentService extends IntentService {
 
             params.add(new BasicNameValuePair("nodeid", nodeid));
             params.add(new BasicNameValuePair("uid", uid));
-            params.add(new BasicNameValuePair("access_token", accesstoken));
+            params.add(new BasicNameValuePair("beacon_address", beacon_address));
             post.setEntity(new UrlEncodedFormEntityHC4(params));
 
 
-            System.out.println("sending to server " + params);
-            System.out.println("post sending to server " + post.toString());
+
+            Log.w(TAG, "sending to server " + params);
+            Log.w(TAG, "post sending to server " + post.toString());
+
+//            System.out.println("sending to server " + params);
+//            System.out.println("post sending to server " + post.toString());
 
             response = client.execute(post);
             Log.w(TAG, "executed");
@@ -162,7 +154,7 @@ public class MessageIntentService extends IntentService {
 
         private String retrieveDomain() {
             SharedPreferences prefs =
-                    PreferenceManager.getDefaultSharedPreferences(MessageIntentService.this);
+                    PreferenceManager.getDefaultSharedPreferences(BeaconIntentService.this);
             String domain = prefs.getString(KEY_PREF_SERVER, "http://novramedialabs.com");
 
             // sanity check
@@ -190,8 +182,8 @@ public class MessageIntentService extends IntentService {
 
         private String retrievePath() {
             SharedPreferences prefs =
-                    PreferenceManager.getDefaultSharedPreferences(MessageIntentService.this);
-            String path = prefs.getString(KEY_PREF_FB_LOGIN_PATH, "/nathan/nathan.php");
+                    PreferenceManager.getDefaultSharedPreferences(BeaconIntentService.this);
+            String path = prefs.getString(KEY_PREF_BEACON_DETECTED_PATH, "/nathan/beacon.php");
 
             // sanity check
             if (path == null) {
@@ -201,7 +193,8 @@ public class MessageIntentService extends IntentService {
         }
 
         private String getUid() {
-            Context context = MessageIntentService.this;
+            // return Android ID as a recognition of a android device
+            Context context = BeaconIntentService.this;
             MessageDigest digester;
             try {
                 digester = MessageDigest.getInstance("MD5");

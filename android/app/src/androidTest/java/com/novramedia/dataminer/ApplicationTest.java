@@ -1,4 +1,4 @@
-package com.nathan.thisshouldwork;
+package com.novramedia.dataminer;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

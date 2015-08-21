@@ -1,4 +1,4 @@
-package com.nathan.thisshouldwork;
+package com.novramedia.dataminer;
 
 import android.app.IntentService;
 import android.content.Context;
@@ -30,15 +30,15 @@ import java.util.List;
 /**
  * Created by nathan on 6/24/2015.
  */
-public class BeaconIntentService extends IntentService {
+public class MessageIntentService extends IntentService {
 
 
-    private static final String TAG = BeaconIntentService.class.getSimpleName();
+    private static final String TAG = MessageIntentService.class.getSimpleName();
     private static final String KEY_PREF_SERVER = "server";
-    private static final String KEY_PREF_BEACON_DETECTED_PATH = "beacon_detected_path";
+    private static final String KEY_PREF_FB_LOGIN_PATH = "fb_login_path";
 
 
-    public BeaconIntentService() {
+    public MessageIntentService() {
         super(TAG);
     }
 
@@ -48,7 +48,6 @@ public class BeaconIntentService extends IntentService {
         if (bundle == null) {
             Log.w(TAG, "Empty intent, doing nothing");
         } else {
-            Log.w(TAG, "Intent: " + bundle.toString());
             boolean result = post(bundle);
         }
     }
@@ -115,7 +114,7 @@ public class BeaconIntentService extends IntentService {
             String uid = getUid();
 
             String nodeid = bundle.getString("nodeid");
-            String beacon_address = bundle.getString("beacon_address");
+            String accesstoken = bundle.getString("accesstoken");
 
 
             List<NameValuePair> params = new ArrayList<>();
@@ -123,16 +122,12 @@ public class BeaconIntentService extends IntentService {
 
             params.add(new BasicNameValuePair("nodeid", nodeid));
             params.add(new BasicNameValuePair("uid", uid));
-            params.add(new BasicNameValuePair("beacon_address", beacon_address));
+            params.add(new BasicNameValuePair("access_token", accesstoken));
             post.setEntity(new UrlEncodedFormEntityHC4(params));
 
 
-
-            Log.w(TAG, "sending to server " + params);
-            Log.w(TAG, "post sending to server " + post.toString());
-
-//            System.out.println("sending to server " + params);
-//            System.out.println("post sending to server " + post.toString());
+            System.out.println("sending to server " + params);
+            System.out.println("post sending to server " + post.toString());
 
             response = client.execute(post);
             Log.w(TAG, "executed");
@@ -154,7 +149,7 @@ public class BeaconIntentService extends IntentService {
 
         private String retrieveDomain() {
             SharedPreferences prefs =
-                    PreferenceManager.getDefaultSharedPreferences(BeaconIntentService.this);
+                    PreferenceManager.getDefaultSharedPreferences(MessageIntentService.this);
             String domain = prefs.getString(KEY_PREF_SERVER, "http://novramedialabs.com");
 
             // sanity check
@@ -182,8 +177,8 @@ public class BeaconIntentService extends IntentService {
 
         private String retrievePath() {
             SharedPreferences prefs =
-                    PreferenceManager.getDefaultSharedPreferences(BeaconIntentService.this);
-            String path = prefs.getString(KEY_PREF_BEACON_DETECTED_PATH, "/nathan/beacon.php");
+                    PreferenceManager.getDefaultSharedPreferences(MessageIntentService.this);
+            String path = prefs.getString(KEY_PREF_FB_LOGIN_PATH, "/nathan/nathan.php");
 
             // sanity check
             if (path == null) {
@@ -193,8 +188,7 @@ public class BeaconIntentService extends IntentService {
         }
 
         private String getUid() {
-            // return Android ID as a recognition of a android device
-            Context context = BeaconIntentService.this;
+            Context context = MessageIntentService.this;
             MessageDigest digester;
             try {
                 digester = MessageDigest.getInstance("MD5");
