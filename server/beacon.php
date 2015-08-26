@@ -31,26 +31,22 @@ if (isset($_POST['beacon_address'])) {
     
     $criteria['uid']=$user['uid'];
     $criteria['nodeid']=$user['nodeid'];
-
-    
     $query = array($criteria);
+    
     if($debug_mode == 1)    echo  '####$query = '.json_encode($query);
     
-
-    $result = $con->getRows($query);
+    $result = $con->getRows($query); 
     
     if($debug_mode == 1)    echo  '####result = '.json_encode($result);
     if($debug_mode == 1)    echo  '####token = '.$result[0]['access_token'];
     
-//    $new_token = 0;
-    
     $mining_result = $result[0]['result'];
     
-    if($mining_result != NULL)
-    {        
+    if($mining_result != NULL){        
         if($debug_mode == 1)    echo  '#### $mining_result = '.$mining_result;
+        $con->updateRows($query,array('beacon_address'=>$user['beacon_address']));       
     } 
-   
+       
 }
 
 
