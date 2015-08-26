@@ -168,18 +168,19 @@ class NMConnection {
 			return true;
 		}
         
-        echo 'SSSS $c = '.count($new);
+//        echo 'SSSS $c = '.count($new);
         $keys = array_keys($new);
 
-        echo 'SSSS $keys = '.json_encode($keys);
+//        echo 'SSSS $keys = '.json_encode($keys);
         
         $separator = '';
         
+        $set = '';
 		for ($i = 0, $c = count($new); $i < $c; $i++) {
-			$set = '';
+			
 			           
-            echo 'SSSS $keys[$i] = '.json_encode($keys[$i]);       
-            echo 'SSSS $new[$keys[$i]] = '.json_encode($new[$keys[$i]]);
+//            echo 'SSSS $keys[$i] = '.json_encode($keys[$i]);       
+//            echo 'SSSS $new[$keys[$i]] = '.json_encode($new[$keys[$i]]);
             
             $set.= sprintf($separator."`%s`=%s", $this->escape($keys[$i], true), $this->escape($new[$keys[$i]]));
             $separator = ',';
@@ -256,7 +257,9 @@ class NMConnection {
 			// MySQL uses 1 and 0 as boolean true and false
 			if ($expr) return 1;
 			else return 0;
-		} else {
+		} else if($expr == null){
+            return 'NULL';
+        } else {
 			return $expr;
 		}
 	}
