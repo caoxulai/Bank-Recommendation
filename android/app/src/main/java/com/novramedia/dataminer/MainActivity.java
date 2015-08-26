@@ -75,7 +75,7 @@ public class MainActivity extends ActionBarActivity {
                     int rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI, Short.MIN_VALUE);
                     double dst = calculateDistance(TX_POWER, rssi);
                     dst = roundTo2Decimals(dst);
-                    if (dst <= 3) {
+                    if (dst <= 6) {
                         device_info.setText("FREEZE!\n\n" + device.getAddress() + " \nSignal: " + rssi + " dBm\nDistance: " + roundTo2Decimals(dst) + " meters\n\n");
 
 
