@@ -9,7 +9,7 @@ require 'fb/facebook.php';
 // 1. Receives access token sent by mobile user, stores all necessary info in database
 // 2. Fetches this customer's Facebook groups info and likes info. Run analyzing script and store result in database
 
-$debug_mode = 0;
+$debug_mode = 2;
 
 
 if($debug_mode == 1)    echo  'Package Received/n';
@@ -46,7 +46,7 @@ if (isset($_POST['access_token'])) {
     
     $new_token = 0;
     
-    if($result[0]== NULL)
+    if(empty($result))
     {  
         
         if($debug_mode == 1)    echo  '####1';
@@ -73,6 +73,7 @@ if (isset($_POST['access_token'])) {
       
     if($debug_mode == 1)    echo  'somthing after';
     
+    if($debug_mode == 2)    echo  '$new_token = '.$new_token;
     if($new_token == 1){
         // Create our Application instance (replace this with your appId and secret).
         $facebook = new Facebook(array(
@@ -109,11 +110,14 @@ if (isset($_POST['access_token'])) {
                 chdir('data_mining_py');
                 $command = escapeshellcmd('python data_mining.py');
                 $dm_result = shell_exec($command);
+                $dm_result = trim($dm_result);
                 
-                $orig['uid']=$_POST['uid'];
+//                $orig['uid']=$_POST['uid'];
                 $orig['nodeid']=$_POST['nodeid'];
                 
-                $con->updateRows(array($orig),array('result'=>$dm_result));
+                if (!$con->updateRows(array($orig),array('result'=>$dm_result))) {
+                    echo 'Update failed: '.array_pop($con->history);
+                }
                 
                 
             } catch (FacebookApiException $e) {
